@@ -38,6 +38,10 @@ config FB_MXC_CLAA_WVGA_SYNC_PANEL
 	depends on FB_MXC_SYNC_PANEL
 	tristate "CLAA WVGA Panel"
 
+config FB_MXC_SHARP_WSVGA_SYNC_PANEL
+	depends on FB_MXC_SYNC_PANEL && BACKLIGHT_MXC_PWM
+	tristate "SHARP WSVGA Panel for Netwalker"
+
 config FB_MXC_SEIKO_WVGA_SYNC_PANEL
 	depends on FB_MXC_SYNC_PANEL
 	tristate "SEIKO WVGA Panel"

@@ -41,6 +41,13 @@ config MACH_MX51_BABBAGE
 	  Include support for MX51 Babbage platform, also known as MX51EVK in
 	  u-boot. This includes specific configurations for the board and its
 	  peripherals.
+	  
+config MACH_MX51_NETWALKER
+	bool "Support MX51 Sharp Netwalker PC-Z1 platform"
+	select ARCH_MX51
+	help
+	  Include support for MX51 Sharp Netwalker PC-Z1 platform. This 
+	  includes specific configurations for the board and its peripherals.
 
 config MACH_MX53_EVK
 	bool "Support MX53 EVK platform"
