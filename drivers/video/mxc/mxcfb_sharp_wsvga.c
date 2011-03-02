@@ -121,17 +121,10 @@ static int __devinit lcd_probe(struct platform_device *pdev)
 	for (i = 0; i < num_registered_fb; i++) {
 		if (strcmp(registered_fb[i]->fix.id, "DISP3 BG") == 0) {
 			lcd_init_fb(registered_fb[i]);
-/*#if 1
-			{ extern int fb_show_spider_logo (struct fb_info *, int);
-			fb_show_spider_logo(registered_fb[i], 0);
-			}
-#else */
-//			fb_show_logo(registered_fb[i], 0);
-// #endif 
 			lcd_poweron();
 			mxc_pwm_set_duty(100);
 		} else if (strcmp(registered_fb[i]->fix.id, "DISP3 FG") == 0) {
-//			lcd_init_fb(registered_fb[i]);
+			lcd_init_fb(registered_fb[i]);
 		}
 	}
 

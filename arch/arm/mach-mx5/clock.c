@@ -4239,6 +4239,7 @@ static struct clk_lookup lookups[] = {
 	_REGISTER_CLOCK("imx-i2c.1", NULL, i2c_clk[1]),
 	_REGISTER_CLOCK("mxc_pwm.0", NULL, pwm1_clk[0]),
 	_REGISTER_CLOCK("mxc_pwm.1", NULL, pwm2_clk[0]),
+	_REGISTER_CLOCK(NULL, "pwm_ipg_clk", pwm1_clk[1]),
 	_REGISTER_CLOCK("mxc_spi.0", NULL, cspi1_clk[0]),
 	_REGISTER_CLOCK("mxc_spi.1", NULL, cspi2_clk[0]),
 	_REGISTER_CLOCK("mxc_spi.2", NULL, cspi3_clk),

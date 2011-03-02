@@ -151,7 +151,8 @@ static int __init mxc_pwm_init(void)
 
 	pdev.dev.bus  = &platform_bus_type;
 	pdev.id       = 0;
-	pwm_ipg_clk = clk_get(&pdev.dev, "pwm_ipg_clk");
+//	pwm_ipg_clk   = clk_get(&pdev.dev, "pwm_ipg_clk");
+	pwm_ipg_clk   = clk_get(NULL, "pwm_ipg_clk");
 	if (IS_ERR(pwm_ipg_clk)) {
 		return -EIO;
 	}

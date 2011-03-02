@@ -294,13 +294,14 @@ static struct platform_device mxc_fb_device[] = {
 };
 
 static int __initdata enable_vga = {0};
+extern void gpio_lcd_power(int on);
 
 static void __init mxc_init_fb(void)
 {
 	/**
 	 * don't use DVI
 	 */
-
+	gpio_lcd_power(1);
 	if (!enable_vga) {
 		platform_device_register(&mxc_fb_device[0]);
 	} else {
@@ -1079,9 +1080,9 @@ static void __init mxc_board_init(void)
 //    mxc_register_device(&mxc_dvfs_core_device, &dvfs_core_data);
 //    mxc_register_device(&mxc_dvfs_per_device, &dvfs_per_data);
     mxc_register_device(&mxc_iim_device, NULL);
-/*    mxc_register_device(&mxc_pwm1_device, NULL);
+    mxc_register_device(&mxc_pwm1_device, NULL);
     mxc_register_device(&mxc_pwm1_backlight_device,
-	&mxc_pwm_backlight_data);*/
+	&mxc_pwm_backlight_data);
 	mxc_init_fb();
 	mxc_init_lcd();
 //    mxc_register_device(&mxc_keypad_device, &keypad_plat_data);

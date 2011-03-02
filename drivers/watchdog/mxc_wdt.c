@@ -3,8 +3,8 @@
  *
  * Watchdog driver for FSL MXC. It is based on omap1610_wdt.c
  *
- * Copyright (C) 2004-2010 Freescale Semiconductor, Inc.
- * 2005 (c) MontaVista Software, Inc.
+ * Copyright 2004-2009 Freescale Semiconductor, Inc. All Rights Reserved.
+ * 2005 (c) MontaVista Software, Inc.  All Rights Reserved.
 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,19 +44,26 @@
 #include <linux/types.h>
 #include <linux/kernel.h>
 #include <linux/fs.h>
+#include <linux/mm.h>
 #include <linux/miscdevice.h>
 #include <linux/watchdog.h>
 #include <linux/reboot.h>
+#include <linux/smp_lock.h>
 #include <linux/init.h>
 #include <linux/err.h>
 #include <linux/platform_device.h>
 #include <linux/interrupt.h>
+#include <linux/moduleparam.h>
 #include <linux/clk.h>
-#include <linux/io.h>
-#include <linux/uaccess.h>
 
+#include <asm/io.h>
+#include <asm/uaccess.h>
+#include <mach/hardware.h>
+#include <asm/irq.h>
+#include <asm/bitops.h>
+
+#include <mach/hardware.h>
 #include "mxc_wdt.h"
-
 #define DVR_VER "2.0"
 
 #define WDOG_SEC_TO_COUNT(s)  ((s * 2) << 8)
@@ -66,11 +73,19 @@ static void __iomem  *wdt_base_reg;
 static int mxc_wdt_users;
 static struct clk *mxc_wdt_clk;
 
+#ifdef CONFIG_MACH_MX51_NETWALKER
+static unsigned            timer_margin = 123;	/* 123sec(60*2+x) */
+static volatile int        mxc_wdt_staticstics [8];
+static int                 opened;
+static struct delayed_work wdt_self_work;
+#else
 static unsigned timer_margin = TIMER_MARGIN_DEFAULT;
+#endif
+
 module_param(timer_margin, uint, 0);
 MODULE_PARM_DESC(timer_margin, "initial watchdog timeout (in seconds)");
 
-static unsigned dev_num;
+static unsigned dev_num = 0;
 
 static void mxc_wdt_ping(void *base)
 {
@@ -88,7 +103,11 @@ static void mxc_wdt_config(void *base)
 	/* enable suspend WDT */
 	val |= WCR_WDZST_BIT | WCR_WDBG_BIT;
 	/* generate reset if wdog times out */
-	val &= ~WCR_WRE_BIT;
+#ifdef CONFIG_MACH_MX51_NETWALKER
+	val |= WCR_WRE_BIT;	// correct
+#else
+	val &= ~WCR_WRE_BIT;	// wrong
+#endif /* CONFIG_MACH_MX51_NETWALKER */
 
 	__raw_writew(val, base + MXC_WDT_WCR);
 }
@@ -156,6 +175,9 @@ static int mxc_wdt_open(struct inode *inode, struct file *file)
 	mxc_wdt_set_timeout(wdt_base_reg);
 	mxc_wdt_enable(wdt_base_reg);
 	mxc_wdt_ping(wdt_base_reg);
+#ifdef CONFIG_MACH_MX51_NETWALKER
+	opened = 1;
+#endif /* CONFIG_MACH_MX51_NETWALKER */
 
 	return 0;
 }
@@ -176,8 +198,8 @@ static int mxc_wdt_release(struct inode *inode, struct file *file)
 }
 
 static ssize_t
-mxc_wdt_write(struct file *file, const char __user *data,
-	      size_t len, loff_t *ppos)
+mxc_wdt_write(struct file *file, const char __user * data,
+	      size_t len, loff_t * ppos)
 {
 	/* Refresh LOAD_TIME. */
 	if (len)
@@ -211,7 +233,10 @@ mxc_wdt_ioctl(struct inode *inode, struct file *file,
 		return put_user(bootr, (int __user *)arg);
 	case WDIOC_KEEPALIVE:
 		mxc_wdt_ping(wdt_base_reg);
-		return 0;
+#ifdef CONFIG_MACH_MX51_NETWALKER
+		mxc_wdt_staticstics [2]++;
+#endif /* CONFIG_MACH_MX51_NETWALKER */
+			return 0;
 	case WDIOC_SETTIMEOUT:
 		if (get_user(new_margin, (int __user *)arg))
 			return -EFAULT;
@@ -244,6 +269,54 @@ static struct miscdevice mxc_wdt_miscdev = {
 	.fops = &mxc_wdt_fops
 };
 
+#ifdef CONFIG_MACH_MX51_NETWALKER
+/*
+ * wdt_self_workqueue_handler 
+ */
+static void wdt_self_workqueue_handler (struct work_struct *work)
+{
+	mxc_wdt_staticstics [0]++;
+	if (opened == 0) {
+	/*
+	 * WDT heartbeat
+	 */
+	mxc_wdt_staticstics [1]++;
+	mxc_wdt_ping (wdt_base_reg);
+	/*
+	 * next interval
+	 */
+	schedule_delayed_work (&wdt_self_work, 60 * HZ);
+	}
+}
+
+/*
+ * wdt_self_start 
+ */
+static void wdt_self_start (void)
+{
+	/*
+	 * delay work create
+	 */
+	INIT_DELAYED_WORK (&wdt_self_work, wdt_self_workqueue_handler);
+	schedule_delayed_work (&wdt_self_work, HZ);
+	mxc_wdt_config (wdt_base_reg);
+	mxc_wdt_set_timeout (wdt_base_reg);
+	mxc_wdt_enable (wdt_base_reg);
+}
+
+/*
+ * wdt_self_stop 
+ */
+static void wdt_self_stop (void)
+{
+	/*
+	 * delay work stop
+	 */
+	cancel_delayed_work (&wdt_self_work);
+}
+#endif /* CONFIG_MACH_MX51_NETWALKER */
+
+
 static int __init mxc_wdt_probe(struct platform_device *pdev)
 {
 	struct resource *res, *mem;
@@ -261,7 +334,7 @@ static int __init mxc_wdt_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, mem);
 
-	wdt_base_reg = ioremap(res->start, res->end - res->start + 1);
+	wdt_base_reg = IO_ADDRESS(res->start);
 	mxc_wdt_disable(wdt_base_reg);
 	mxc_wdt_adjust_timeout(timer_margin);
 
@@ -275,6 +348,13 @@ static int __init mxc_wdt_probe(struct platform_device *pdev)
 	ret = misc_register(&mxc_wdt_miscdev);
 	if (ret)
 		goto fail;
+#ifdef CONFIG_MACH_MX51_NETWALKER
+	/*
+	 * disable PowerDownCounter
+	 */
+	__raw_writew (0x0000, wdt_base_reg + 0x08);	/* WMCR */
+	wdt_self_start ();
+#endif /* CONFIG_MACH_MX51_NETWALKER */
 
 	pr_info("MXC Watchdog # %d Timer: initial timeout %d sec\n", dev_num,
 		timer_margin);
@@ -282,7 +362,6 @@ static int __init mxc_wdt_probe(struct platform_device *pdev)
 	return 0;
 
       fail:
-	iounmap(wdt_base_reg);
 	release_resource(mem);
 	pr_info("MXC Watchdog Probe failed\n");
 	return ret;
@@ -290,6 +369,9 @@ static int __init mxc_wdt_probe(struct platform_device *pdev)
 
 static void mxc_wdt_shutdown(struct platform_device *pdev)
 {
+#ifdef CONFIG_MACH_MX51_NETWALKER
+	wdt_self_stop ();
+#endif /* CONFIG_MACH_MX51_NETWALKER */
 	mxc_wdt_disable(wdt_base_reg);
 	pr_info("MXC Watchdog # %d shutdown\n", dev_num);
 }
@@ -298,7 +380,6 @@ static int __exit mxc_wdt_remove(struct platform_device *pdev)
 {
 	struct resource *mem = platform_get_drvdata(pdev);
 	misc_deregister(&mxc_wdt_miscdev);
-	iounmap(wdt_base_reg);
 	release_resource(mem);
 	pr_info("MXC Watchdog # %d removed\n", dev_num);
 	return 0;
@@ -368,7 +449,11 @@ static void __exit mxc_wdt_exit(void)
 	pr_info("MXC WatchDog Driver removed\n");
 }
 
+#ifdef CONFIG_MACH_MX51_NETWALKER
+fs_initcall(mxc_wdt_init);
+#else
 module_init(mxc_wdt_init);
+#endif
 module_exit(mxc_wdt_exit);
 
 MODULE_AUTHOR("Freescale Semiconductor, Inc.");
