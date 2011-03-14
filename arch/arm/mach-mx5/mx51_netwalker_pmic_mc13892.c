@@ -5,7 +5,7 @@
  *
  * Copyright (C) 2008 Nissin Systems Co.,Ltd.
  * 2010/11/05 ported to 2.6.31 by Andrey Zhornyak darion76@gmail.com
- * 2011/02/01 ported to 2.6.31 by Andrey Zhornyak darion76@gmail.com
+ * 2011/02/01 ported to 2.6.35 by Andrey Zhornyak darion76@gmail.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -293,27 +293,28 @@ static int mc13892_regulator_init(struct mc13892 *mc13892)
 	pmic_write_reg(REG_POWER_CTL0, value, register_mask);
 #endif
 
-	mc13892_register_regulator(mc13892, MC13892_SW1,    &sw1_init);
-	mc13892_register_regulator(mc13892, MC13892_SW2,    &sw2_init);
-	mc13892_register_regulator(mc13892, MC13892_SW3,    &sw3_init);
-	mc13892_register_regulator(mc13892, MC13892_SW4,    &sw4_init);
-	mc13892_register_regulator(mc13892, MC13892_SWBST,  &swbst_init);
-	mc13892_register_regulator(mc13892, MC13892_VIOHI,  &viohi_init);
-	mc13892_register_regulator(mc13892, MC13892_VPLL,   &vpll_init);
-	mc13892_register_regulator(mc13892, MC13892_VDIG,   &vdig_init);
-	mc13892_register_regulator(mc13892, MC13892_VSD,    &vsd_init);
-	mc13892_register_regulator(mc13892, MC13892_VUSB2,  &vusb2_init);
-	mc13892_register_regulator(mc13892, MC13892_VVIDEO, &vvideo_init);
+//	mc13892_register_regulator(mc13892, MC13892_SW1,    &sw1_init);
+//	mc13892_register_regulator(mc13892, MC13892_SW2,    &sw2_init);
+//	mc13892_register_regulator(mc13892, MC13892_SW3,    &sw3_init);
+//	mc13892_register_regulator(mc13892, MC13892_SW4,    &sw4_init);
+//	mc13892_register_regulator(mc13892, MC13892_SWBST,  &swbst_init);
+//	mc13892_register_regulator(mc13892, MC13892_VIOHI,  &viohi_init);
+//	mc13892_register_regulator(mc13892, MC13892_VPLL,   &vpll_init);
+//	mc13892_register_regulator(mc13892, MC13892_VDIG,   &vdig_init);
+//	mc13892_register_regulator(mc13892, MC13892_VSD,    &vsd_init);
+//	mc13892_register_regulator(mc13892, MC13892_VUSB2,  &vusb2_init);
+//	mc13892_register_regulator(mc13892, MC13892_VVIDEO, &vvideo_init);
 	mc13892_register_regulator(mc13892, MC13892_VAUDIO, &vaudio_init);
-	mc13892_register_regulator(mc13892, MC13892_VCAM,   &vcam_init);
-	mc13892_register_regulator(mc13892, MC13892_VGEN1,  &vgen1_init);
-	mc13892_register_regulator(mc13892, MC13892_VGEN2,  &vgen2_init);
-	mc13892_register_regulator(mc13892, MC13892_VGEN3,  &vgen3_init);
+//	mc13892_register_regulator(mc13892, MC13892_VCAM,   &vcam_init);
+//	mc13892_register_regulator(mc13892, MC13892_VGEN1,  &vgen1_init);
+//	mc13892_register_regulator(mc13892, MC13892_VGEN2,  &vgen2_init);
+//	mc13892_register_regulator(mc13892, MC13892_VGEN3,  &vgen3_init);
 	mc13892_register_regulator(mc13892, MC13892_VUSB,   &vusb_init);
 	mc13892_register_regulator(mc13892, MC13892_GPO1,   &gpo1_init);
 	mc13892_register_regulator(mc13892, MC13892_GPO2,   &gpo2_init);
 	mc13892_register_regulator(mc13892, MC13892_GPO3,   &gpo3_init);
 	mc13892_register_regulator(mc13892, MC13892_GPO4,   &gpo4_init);
+	regulator_has_full_constraints();
 
 	return 0;
 }

@@ -116,6 +116,8 @@
 
 int is_board_qa0(void);
 int is_fec(void);
+extern void dr_udc_suspend (void);
+extern void dr_udc_resume (void);
 
 static struct mxc_iomux_pin_cfg __initdata mxc_iomux_pins[] = {
 	/* Battery pin settings */
@@ -1542,6 +1544,7 @@ void gpio_audio_sgtl_clk(int isEnable)
 }
 EXPORT_SYMBOL(gpio_audio_sgtl_clk);
 
+
 void gpio_usb_power(struct platform_device *pdev, int on)
 {
 	struct fsl_usb2_platform_data *pdata = pdev->dev.platform_data;
@@ -1557,15 +1560,12 @@ void gpio_usb_power(struct platform_device *pdev, int on)
 	} else if (strcmp (pdata->name, "DR") == 0) {
 		/*
 		 * DR otg-host 
-		 * darion need to remake
 		 */
-/*		extern void dr_udc_suspend (void);
-		extern void dr_udc_resume (void);
 		if (on) {
 			dr_udc_resume ();
 		} else {
 			dr_udc_suspend ();
-		}*/
+		}
 		return;
 	} else {
 		return;

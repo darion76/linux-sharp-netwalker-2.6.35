@@ -72,7 +72,7 @@ extern void mxc_mmc_force_detect(int id);
 
 void sdio_detect_led_on(void)
 {
-	PMIC_STATUS	 status;
+/*	PMIC_STATUS	 status;
 
 	if (sdio_detect_enable)
 		return;
@@ -87,13 +87,13 @@ void sdio_detect_led_on(void)
 					     SDIO_DETECT_LED_LVL);
 	if (status < 0)
 		printk("%s(%d):. cannot set led (%d)\n",
-			__FUNCTION__, __LINE__, (int) status);
+			__FUNCTION__, __LINE__, (int) status);*/
 }
 EXPORT_SYMBOL(sdio_detect_led_on);
 
 void sdio_detect_led_off(void)
 {
-	PMIC_STATUS	 status;
+/*	PMIC_STATUS	 status;
 
 	if (sdio_detect_enable)
 		return;
@@ -106,13 +106,13 @@ void sdio_detect_led_off(void)
 	status = mc13892_bklit_set_dutycycle(SDIO_DETECT_LED_CH, 0);
 	if (status < 0)
 		printk("%s(%d):. cannot set led (%d)\n",
-			__FUNCTION__, __LINE__, (int) status);
+			__FUNCTION__, __LINE__, (int) status);*/
 }
 EXPORT_SYMBOL(sdio_detect_led_off);
 
 void sdio_detect_led(void)
 {
-	PMIC_STATUS	 status;
+/*	PMIC_STATUS	 status;
 
 	if (sdio_detect_enable) {
 		status = mc13892_bklit_set_current(SDIO_DETECT_LED_CH,
@@ -137,7 +137,7 @@ void sdio_detect_led(void)
 		if (status < 0)
 			printk("%s(%d):. cannot set led (%d)\n",
 				__FUNCTION__, __LINE__, (int) status);
-	}
+	}*/
 }
 EXPORT_SYMBOL(sdio_detect_led);
 

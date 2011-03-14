@@ -28,6 +28,31 @@ static struct clk *usb_phy1_clk;
 static struct clk *usb_oh3_clk;
 static struct clk *usb_ahb_clk;
 extern int clk_get_usecount(struct clk *clk);
+
+#ifdef CONFIG_MACH_MX51_NETWALKER
+/*
+ * dr_udc_suspend - otg-host suspend (PHY SUSPEND)
+  */
+void dr_udc_suspend (void)
+{
+    /*
+    * PHY_CTRL0 SUSPENDM - clear=suspend-enable
+    */
+    USB_PHY_CTR_FUNC &= ~(0x1 << 12);
+}
+
+/*
+* dr_udc_resume - otg-host resume (PHY RESUME)
+*/
+void dr_udc_resume (void)
+{
+    /*
+    * PHY_CTRL0 SUSPENDM - set=suspend-disable
+    */
+    USB_PHY_CTR_FUNC |= (0x1 << 12);
+}
+#endif /* CONFIG_MACH_MX51_ERDOS */
+
 /*
  * platform data structs
  * 	- Which one to use is determined by CONFIG options in usb.h

@@ -18,6 +18,8 @@
  *
  * Ported to 834x by Randy Vinson <rvinson@mvista.com> using code provided
  * by Hunter Wu.
+ * ---------------modification for Sharp Netwalker PC-Z1----------------
+ * 2010/11/25 : add gpio_usb_power() when !device_may_wakeup() of suspend.
  */
 
 #include <linux/platform_device.h>
@@ -31,6 +33,8 @@
 
 extern int usb_host_wakeup_irq(struct device *wkup_dev);
 extern void usb_host_set_wakeup(struct device *wkup_dev, bool para);
+extern void gpio_usb_power(struct platform_device *pdev, int on);
+
 static void fsl_usb_lowpower_mode(struct fsl_usb2_platform_data *pdata, bool enable)
 {
 	if (enable) {
@@ -667,6 +671,8 @@ static int ehci_fsl_drv_suspend(struct platform_device *pdev,
 		fsl_usb_clk_gate(hcd->self.controller->platform_data, false);
 	}
 	printk(KERN_DEBUG "host suspend ends\n");
+	gpio_usb_power(pdev, 0);
+
 	return 0;
 }
 
@@ -699,6 +705,7 @@ static int ehci_fsl_drv_resume(struct platform_device *pdev)
 		usb_host_set_wakeup(hcd->self.controller, false);
 		fsl_usb_lowpower_mode(pdata, false);
 	}
+	gpio_usb_power(pdev, 1);
 
 	/* set host mode */
 	fsl_platform_set_host_mode(hcd);

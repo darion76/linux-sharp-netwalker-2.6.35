@@ -80,6 +80,7 @@
 #include "crm_regs.h"
 #include "mx51_pins.h"
 #include "devices.h"
+#include "usb.h"
 int clock_auto = { 0 };
 int extsync = { 0 };
 
@@ -175,7 +176,7 @@ static struct mxc_spi_master mxcspi1_data = {
 	.chipselect_inactive = mx51_netwalker_gpio_spi_chipselect_inactive,
 };
 
-extern struct mxc_spi_master mxcspi1_data;
+//extern struct mxc_spi_master mxcspi1_data;
 
 static struct imxi2c_platform_data mxci2c_data = {
         .bitrate = 100000,
@@ -367,35 +368,35 @@ static inline void mxc_init_bl(void)
 
 #if defined(CONFIG_I2C_MXC) || defined(CONFIG_I2C_MXC_MODULE)
 
-#ifdef CONFIG_I2C_MXC_SELECT1
+//#ifdef CONFIG_I2C_MXC_SELECT1
 static struct i2c_board_info mxc_i2c0_board_info[] __initdata = {
 	{
 		.type = "mxc_etk",
 		.addr = 0x28,
 	},
 };
-#endif
+//#endif
 
-#ifdef CONFIG_I2C_MXC_SELECT2
+//#ifdef CONFIG_I2C_MXC_SELECT2
 static struct i2c_board_info mxc_i2c1_board_info[] __initdata = {
 	{
 		.type = "sgtl5000-i2c",
 		.addr = 0x0a,
 	},
 };
-#endif
+//#endif
 
 static void __init mxc_init_i2c(void)
 {
-#ifdef CONFIG_I2C_MXC_SELECT1
+//#ifdef CONFIG_I2C_MXC_SELECT1
 	i2c_register_board_info(0, mxc_i2c0_board_info,
 				ARRAY_SIZE(mxc_i2c0_board_info));
-#endif
+//#endif
 
-#ifdef CONFIG_I2C_MXC_SELECT2
+//#ifdef CONFIG_I2C_MXC_SELECT2
 	i2c_register_board_info(1, mxc_i2c1_board_info,
 				ARRAY_SIZE(mxc_i2c1_board_info));
-#endif
+//#endif
 }
 #else
 static inline void mxc_init_i2c(void)
@@ -506,7 +507,6 @@ static unsigned int sdhc_get_card_det_status(struct device *dev)
 	int ret = 0;
 
 	if (to_platform_device(dev)->id == 0) {
-//		ret = mxc_get_gpio_datain(MX51_PIN_GPIO1_0); //darion
 		ret = gpio_get_value(IOMUX_TO_GPIO(MX51_PIN_GPIO1_0));
 	} else if (to_platform_device(dev)->id == 1) {
 		/* because QA0 board not assigned detect port,
@@ -605,13 +605,14 @@ static struct resource mxcsdhc2_resources[] = {
 	},
 	.num_resources = ARRAY_SIZE(mxcsdhc2_resources),
 	.resource      = mxcsdhc2_resources,
-};*/
+};
 
 static void __init mxc_init_mmc(void)
 {
 	platform_device_register(&mxcsdhc1_device);
 	platform_device_register(&mxcsdhc2_device);
 }
+*/
 #else
 static inline void mxc_init_mmc(void)
 {
@@ -1039,7 +1040,6 @@ static void __init fixup_mxc_board(struct machine_desc *desc, struct tag *tags,
     }
 }
 
-
 /**
  * Board specific initialization.
  */
@@ -1057,6 +1057,8 @@ static void __init mxc_board_init(void)
     mxcsdhc2_device.resource[2].end = IOMUX_TO_IRQ_V3(BABBAGE_SD2_CD_2_5);
     mxcsdhc1_device.resource[2].start = IOMUX_TO_IRQ_V3(BABBAGE_SD1_CD);
     mxcsdhc1_device.resource[2].end = IOMUX_TO_IRQ_V3(BABBAGE_SD1_CD);*/
+    mxcsdhc1_device.resource[2].start = IOMUX_TO_IRQ(MX51_PIN_GPIO1_0);
+    mxcsdhc1_device.resource[2].end = IOMUX_TO_IRQ(MX51_PIN_GPIO1_0);
 
     mxc_cpu_common_init();
     mx51_netwalker_io_init();
@@ -1064,9 +1066,9 @@ static void __init mxc_board_init(void)
     mxc_register_device(&mxc_dma_device, NULL);
     mxc_register_device(&mxc_wdt_device, NULL);
     mxc_register_device(&mxcspi1_device, &mxcspi1_data);
-    mxc_register_device(&mxci2c_devices[0], &mxci2c_data);
-    mxc_register_device(&mxci2c_devices[1], &mxci2c_data);
-    mxc_register_device(&mxci2c_hs_device, &mxci2c_hs_data);
+//    mxc_register_device(&mxci2c_devices[0], &mxci2c_data);
+//    mxc_register_device(&mxci2c_devices[1], &mxci2c_data);
+//    mxc_register_device(&mxci2c_hs_device, &mxci2c_hs_data);
     mxc_register_device(&mxc_rtc_device, &srtc_data);
 //    mxc_register_device(&mxc_w1_master_device, &mxc_w1_data);
     mxc_register_device(&mxc_ipu_device, &mxc_ipu_data);
@@ -1080,11 +1082,12 @@ static void __init mxc_board_init(void)
 //    mxc_register_device(&mxc_dvfs_core_device, &dvfs_core_data);
 //    mxc_register_device(&mxc_dvfs_per_device, &dvfs_per_data);
     mxc_register_device(&mxc_iim_device, NULL);
-    mxc_register_device(&mxc_pwm1_device, NULL);
+/*    mxc_register_device(&mxc_pwm1_device, NULL);
     mxc_register_device(&mxc_pwm1_backlight_device,
-	&mxc_pwm_backlight_data);
+	&mxc_pwm_backlight_data);*/
 	mxc_init_fb();
 	mxc_init_lcd();
+	mxc_init_i2c();
 //    mxc_register_device(&mxc_keypad_device, &keypad_plat_data);
     mxc_register_device(&mxcsdhc1_device, &mmc1_data);
     mxc_register_device(&mxcsdhc2_device, &mmc2_data);
@@ -1092,12 +1095,14 @@ static void __init mxc_board_init(void)
     mxc_register_device(&mxc_ssi2_device, NULL);
     mxc_register_device(&mxc_ssi3_device, NULL);
 //    mxc_register_device(&mxc_alsa_spdif_device, &mxc_spdif_data);
-    mxc_register_device(&mxc_fec_device, NULL);
+/*    mxc_register_device(&mxc_fec_device, NULL);
     mxc_register_device(&mxc_v4l2_device, NULL);
-    mxc_register_device(&mxc_v4l2out_device, NULL);
+    mxc_register_device(&mxc_v4l2out_device, NULL);*/
 
     mx51_netwalker_init_mc13892();
-
+    mxc_init_sgtl5000();
+    mx5_usb_dr_init();
+    mx5_usbh1_init();
 
 /*
 	mxc_cpu_common_init();
